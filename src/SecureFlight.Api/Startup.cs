@@ -17,73 +17,78 @@ using SecureFlight.Core.Interfaces;
 using SecureFlight.Core.Services;
 using SecureFlight.Infrastructure;
 using SecureFlight.Infrastructure.Repositories;
+using SecureFlight.Core.Entities;
 
 namespace SecureFlight.Api
 {
-    public class Startup
-    {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+	public class Startup
+	{
+		public Startup(IConfiguration configuration)
+		{
+			Configuration = configuration;
+		}
 
-        public IConfiguration Configuration { get; }
+		public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddControllers();
-            services.AddDbContext<SecureFlightDbContext>(options => options.UseInMemoryDatabase("SecureFlight"));
-            services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
-            services.AddScoped(typeof(IService<>), typeof(BaseService<>));
+		// This method gets called by the runtime. Use this method to add services to the container.
+		public void ConfigureServices(IServiceCollection services)
+		{
+			services.AddControllers();
+			services.AddDbContext<SecureFlightDbContext>(options => options.UseInMemoryDatabase("SecureFlight"));
+			services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
+			services.AddScoped(typeof(IService<>), typeof(BaseService<>));
+			services.AddScoped<IFlightRepository<Flight>, FlightRepository>();
+			services.AddScoped<IFlightService<Flight>, FlightService>();
+			services.AddScoped<IPassengerRepository<Passenger>, PassengerRepository>();
+			services.AddScoped<IPassengerService<Passenger>, PassengerService>();
 
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo
-                {
-                    Title = "SecureFlight API",
-                    Version = "v1",
-                });
-            });
+			services.AddSwaggerGen(c =>
+			{
+				c.SwaggerDoc("v1", new OpenApiInfo
+				{
+					Title = "SecureFlight API",
+					Version = "v1",
+				});
+			});
 
-            services.AddControllers(options => options.Filters.Add(typeof(ErrorResultFilter)));
-            services.AddAutoMapper(typeof(Program));
-        }
+			services.AddControllers(options => options.Filters.Add(typeof(ErrorResultFilter)));
+			services.AddAutoMapper(typeof(Program));
+		}
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            using (var scope = app.ApplicationServices.CreateScope())
-            {
-                using (var context = scope.ServiceProvider.GetRequiredService<SecureFlightDbContext>())
-                {
-                    context.Database.EnsureCreated();
-                }
-            }
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+		{
+			using (var scope = app.ApplicationServices.CreateScope())
+			{
+				using (var context = scope.ServiceProvider.GetRequiredService<SecureFlightDbContext>())
+				{
+					context.Database.EnsureCreated();
+				}
+			}
+			if (env.IsDevelopment())
+			{
+				app.UseDeveloperExceptionPage();
+			}
 
-            app.UseSwagger();
+			app.UseSwagger();
 
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "SecureFlight API V1");
-                c.RoutePrefix = string.Empty;
-            });
+			app.UseSwaggerUI(c =>
+			{
+				c.SwaggerEndpoint("/swagger/v1/swagger.json", "SecureFlight API V1");
+				c.RoutePrefix = string.Empty;
+			});
 
 
-            app.UseHttpsRedirection();
+			app.UseHttpsRedirection();
 
-            app.UseRouting();
+			app.UseRouting();
 
-            app.UseAuthorization();
+			app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-        }
-    }
+			app.UseEndpoints(endpoints =>
+			{
+				endpoints.MapControllers();
+			});
+		}
+	}
 }
